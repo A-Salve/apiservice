@@ -1,0 +1,30 @@
+- name: Настройка insecure registry для k3s
+  hosts: all
+  become: true
+  tasks:
+    - name: Создать директорию /etc/rancher/k3s
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+
+    - name: Создать registries.yaml
+      copy:
+        dest: /etc/rancher/k3s/registries.yaml
+        content: |
+          mirrors:
+            "192.168.0.12:5000":
+              endpoint:
+                - "http://192.168.0.12:5000"
+
+    - name: Перезапустить k3s на master
+      systemd:
+        name: k3s
+        state: restarted
+      when: inventory_hostname in groups['master']
+
+    - name: Перезапустить k3s-agent на workers
+      systemd:
+        name: k3s-agent
+        state: restarted
+      when: inventory_hostname in groups['workers']
