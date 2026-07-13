@@ -1,20 +1,19 @@
 grafana:
+  image:
+    tag: "11.6.16"
+
   grafana.ini:
     server:
       root_url: '%(protocol)s://%(domain)s/grafana/'
       serve_from_sub_path: true
-  livenessProbe:
-    httpGet:
-      path: /api/health
-      port: 3000
-    initialDelaySeconds: 60
-    timeoutSeconds: 15
-    periodSeconds: 10
-    failureThreshold: 15
-  readinessProbe:
-    httpGet:
-      path: /api/health
-      port: 3000
-    timeoutSeconds: 5
-    periodSeconds: 10
-    failureThreshold: 6
+    database:
+      type: postgres
+      host: grafana-pg-postgresql.monitoring.svc.cluster.local:5432
+      name: grafana
+      user: grafana
+
+  envValueFrom:
+    GF_DATABASE_PASSWORD:
+      secretKeyRef:
+        name: grafana-pg-postgresql
+        key: password
